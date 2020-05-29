@@ -1,0 +1,51 @@
+; Final Project
+; Programmers: Brian Garcia, Ming Chen, Rigo Salzar, Scott Slessor
+; Purpose: GET 5 SCORE FROM INPUT
+
+.ORIG X3000
+
+AND R0, R0, #0
+AND R1, R1, #0
+ADD R1, R1, X5
+NOT R1, R1
+ADD R1, R1, X1
+
+LOOP			;;;;;;LOOP for get 5 scores;;;;;;
+LEA R0, PROMPT		;Prompt user to get input
+PUTS
+
+;;;;;;;;;;;;;;;;;;;;;GET 1st INPUT AND VALIDATION
+GETC			
+PUTC
+ST R0, NUMBER1
+LD R4, NUMBER1		;1st input can only be 0 OR 1
+AND R2, R2, X0		; R2=-1
+ADD R2, R2, X1
+NOT R2, R2
+ADD R2, R2, X1		; R2 =-1
+ADD R4, R4, R2		; if x>1 or x<0 GO LOOP
+BRn LOOP
+
+;;;;;;;;;;;;;;;;;;;;;GET 2nd INPUT AND VALIDATION			
+GETC			
+PUTC
+ST R0, NUMBER2
+
+;;;;;;;;;;;;;;;;;;;;;GET 3rd INPUT AND VALIDATION
+GETC			
+PUTC
+ST R0, NUMBER3
+
+ADD R1, R1, X1
+BRn LOOP		;LOOP 5 TIME TO GET 5 SCORES
+
+AND R0, R0, X0			
+LEA R0, ENDD
+
+NUMBER1 .FILL X3100
+NUMBER2 .FILL X3101
+NUMBER3 .FILL X3102
+PROMPT .STRINGZ "\nPLEASE ENTER THE SCORE BETWEEN 000-100: "
+ENDD .STRINGZ "\nEND"
+
+.END
