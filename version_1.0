@@ -1,0 +1,301 @@
+; Final Project
+; Programmers: Brian Garcia, Ming Chen, Rigo Salzar, Scott Slessor
+; Purpose: GET 5 SCORE FROM INPUT
+
+.ORIG X3000
+AND R0, R0, X0
+AND R1, R1, X0
+ADD R1, R1, X5
+NOT R1, R1
+ADD R1, R1, X1
+AND R6, R6, X0		;R6 FOR TOTAL
+;;;;;;;;;;;;;;MAX,MIN=0
+AND R2, R2, #0
+ADD R2, R2, #15
+ADD R2, R2, #15
+ADD R2, R2, #15
+ADD R2, R2, #3
+STI R2, MAX
+STI R2, MIN
+STI R2, NUM
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;LOOP for get 5 scores;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+LOOP		
+LEA R0, PROMPT		;Prompt user to get input
+PUTS
+
+AND R5, R5, #0		;R5 FOR TEMP SCORE
+;;;;;;;;;;;;;;;;;;;;GET 1st INPUT AND VALIDATION
+GETC			
+PUTC
+ADD R4, R0, X0		; CONVERT DEC TO HEX
+ADD R4, R4, #-16
+ADD R4, R4, #-16
+ADD R4, R4, #-16
+ADD R4, R4, #-1		; if x>1 or x<0 GO LOOP
+BRp LOOP
+BRz SCORE100		;if x=1, score can only be 100
+STI R4, NUMBER1
+
+;;;;;;;;;;;;;;;;;;;;;GET 2nd INPUT AND VALIDATION			
+GETC			
+PUTC
+ADD R0, R0, #-16
+ADD R0, R0, #-16
+ADD R0, R0, #-16
+STI R0, NUMBER2
+JSR MULTIPLY10		;which means score +10*input number
+
+
+;;;;;;;;;;;;;;;;;;;;;;GET 3rd INPUT AND VALIDATION
+GETC			
+PUTC
+ADD R0, R0, #-16
+ADD R0, R0, #-16
+ADD R0, R0, #-16
+STI R0, NUMBER3
+
+;;;;;;;;;;;;;;;;;;;;;;;GET THE SCORE
+ADD R5, R5, R0		;R5 is the score, and add n*1 to it
+STI R5, SCORE
+
+JSR FINDMIN		;GET MIN AND STORE AT X3202
+JSR FINDMAX		;GET MAX AND STORE AT X3201
+
+ADD R6, R6, R5
+STI R6, TOTAL
+ADD R1, R1, X1		;R1 is counter
+BRn LOOP		;LOOP 5 TIME TO GET 5 SCORES
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;END LOOP OF GET 5 SCORES;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+JSR FINDAVE
+
+
+;;;PRINT AVE
+LEA R0, PRINTAVE
+PUTS
+LDI R1, AVE
+JSR PRINTGRADE
+
+;;;PRINT MAX
+LEA R0, PRINTMAX
+PUTS
+LDI R1, MAX
+JSR PRINTGRADE
+
+;;;PRINT MIN
+LEA R0, PRINTMIN
+PUTS
+LDI R1, MIN
+JSR PRINTGRADE
+
+HALT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;Mian prcessing end here;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;SUBROUTINE;;;;;;;;;;;;;;;
+;;;;;;;;;;;;FINDAVE;;;;;;;;;;;;;;;;;
+FINDAVE
+LDI R1, TOTAL
+AND R2, R2, #0	
+AND R3, R3, #0
+ADD R2, R2, #5	
+NOT R2, R2
+ADD R2, R2, #1
+
+AVELOOP
+ADD R3, R3, #1
+ADD R1, R1, R2
+BRp AVELOOP
+STI R3, AVE
+RET
+;;;;;;;;;;;;FINDAVE;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;END;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;SUBROUTINE;;;
+;;;;;;;;;;;;FINDMAX;;;;;
+FINDMAX
+LDI R3, MAX	;R3=MAX
+LDI R4, SCORE	;R4=SCORE
+NOT R3, R3
+ADD R3, R3, #1	;R3=-MAX
+ADD R4, R4, R3	; IF SCORE - MAX >0, MAX=SCORE;ELSE SKIP(<=0)
+BRnz SKIP1
+LDI R4, SCORE
+STI R4, MAX
+SKIP1
+RET
+;;;;;;;;;;;;FINDMAX;;;;;;
+;;;;;;;;;;;;;;;END;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;SUBROUTINE;;;;;;;;;;;;;;;
+;;;;;;;;;;;;FINDMIN;;;;;;;;;;;;;;;;;
+FINDMIN
+AND R3, R3, #0
+AND R4, R4, #0
+LDI R3, MIN	;R3=MIN
+LDI R4, SCORE	;R4=SCORE
+NOT R3, R3
+ADD R3, R3, #1	;R3=-MIN
+ADD R4, R4, R3	; IF SCORE-MIN>=0, SKIP; ELSE MIN=SCORE(<0)
+BRzp SKIP2
+LDI R4, SCORE
+STI R4, MIN
+SKIP2
+RET
+;;;;;;;;;;;;FINDMIX;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;END;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;BRANCH;;;;;;;		;;Branch that score =100
+;;;;;;;;;;;MULTIPLY10;;;		;;;;;		;;1st input is 1, rest should be 00
+MULTIPLY10
+AND R3, R3, X0
+ADD R3, R3, #10		;R3 FOR COUNTER 10
+LOOP1		;temperture total = x * 10
+ADD R5, R5, R0
+ADD R3, R3, X-1
+BRp LOOP1
+
+RET
+;;;;;;;;;MULTIPLY10;;;;;		
+;;;;;;;;;;;;END;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;	
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;Branch;;;;;;;
+;;;;;;;;;;;SCORE100;;;;;;;;		
+SCORE100			;Branch of score = 100
+GETC			
+PUTC		
+ADD R0, R0, #-16	;CONVERT DEC TO HEX,2nd input must =0
+ADD R0, R0, #-16
+ADD R0, R0, #-16
+BRnp LOOP		
+
+GETC			
+PUTC
+ADD R0, R0, #-16	;CONVERT DEC TO HEX,3rd input must =0
+ADD R0, R0, #-16
+ADD R0, R0, #-16
+BRnp LOOP		; input can only be 0 when score=1??
+
+ADD R5, R5, #15
+ADD R5, R5, #15
+ADD R5, R5, #15
+ADD R5, R5, #15
+ADD R5, R5, #15
+ADD R5, R5, #15
+ADD R5, R5, #10		;SCORE=100
+STI R5, MAX
+ADD R6, R6, R5
+ADD R1, R1, X1		;r1 is counter
+BRn LOOP		;LOOP 5 TIME TO GET 5 SCORES
+;;;;;;;;;;;SCORE100;;;;;;;;	
+;;;;;;;;;;;;;END;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;BRANCH;;;;;;;;;;;;;;;;;;;;;		
+;;;;;;;;;;;PRINTGRADE;;;;;;;;;;;;;;;;;	
+PRINTGRADE
+AND R2, R2, #0		;CLEAR R2
+
+ADD R2, R1, #0		;put the score ino R2
+ADD R2, R2, #-15	;If X-90<0, go check is it a B, else print A
+ADD R2, R2, #-15
+ADD R2, R2, #-15
+ADD R2, R2, #-15
+ADD R2, R2, #-15
+ADD R2, R2, #-15
+BRn ISB		;IF <0, check if it is B,else print A
+LEA R0, GRADEA
+PUTS
+RET			
+
+ISB
+AND R2, R2, #0		;clear R2
+ADD R2, R1, #0		;R2=score
+ADD R2, R2, #-15	;check if score-80; >=0, print B
+ADD R2, R2, #-15
+ADD R2, R2, #-15
+ADD R2, R2, #-15
+ADD R2, R2, #-15
+ADD R2, R2, #-5	;
+BRn ISC		;IF <0, check if it is C,else print B
+LEA R0, GRADEB
+PUTS
+RET
+
+ISC			
+AND R2, R2, #0		
+ADD R2, R1, #0
+ADD R2, R2, #-15	
+ADD R2, R2, #-15
+ADD R2, R2, #-15
+ADD R2, R2, #-15
+ADD R2, R2, #-10	
+BRn ISD		;IF <0, check if it is D,else print C
+LEA R0, GRADEC
+PUTS
+RET
+
+ISD
+AND R2, R2, #0		
+ADD R2, R1, #0
+ADD R2, R2, #-15	
+ADD R2, R2, #-15
+ADD R2, R2, #-15
+ADD R2, R2, #-15	
+BRn ISD		;IF <0, go PrintF,else print D
+LEA R0, PRINTF
+PUTS
+RET
+
+PRINTF
+LEA R0, GRADEF		;else is F
+PUTS
+RET
+
+;;;;;;;;;PRINTGRADE;;;;;;;;;;;;;		
+;;;;;;;;;;;;END;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+NUMBER1 .FILL X3100	;first digit
+NUMBER2 .FILL X3101	;second digit	
+NUMBER3 .FILL X3102	;third digit
+SCORE	.FILL X3103
+HEX100	.FILL X64
+HEX0	.FILL X30
+
+TOTAL	.FILL X3200
+MAX	.FILL X3201
+MIN	.FILL X3202
+AVE	.FILL X3203
+NUM	.FILL X3204
+PROMPT .STRINGZ "\nPLEASE ENTER THE SCORE BETWEEN 000-100: "
+PRINTAVE .STRINGZ "\nThe average score is: "
+PRINTMAX .STRINGZ "\nThe max score is: "
+PRINTMIN .STRINGZ "\nThe min score is: "
+GRADEA	.STRINGZ "A"
+GRADEB	.STRINGZ "B"
+GRADEC	.STRINGZ "C"
+GRADED	.STRINGZ "D"
+GRADEF	.STRINGZ "F"
+
+.END
